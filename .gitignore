@@ -1,0 +1,25 @@
+# Go build artifacts
+bin/
+build/
+dist/
+*.out
+*.test
+
+# IDE/editor files
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# CLI binaries
+cmd/**/ipintel
+ipintel
+
+# OS/filesystem cruft
+.DS_Store
+
+# Coverage
+coverage.*
+*.coverprofile
+
