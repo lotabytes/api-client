@@ -4,9 +4,6 @@ import (
 	"context"
 
 	"api-client/internal/model"
-	"api-client/internal/provider/ipapi"
-	"api-client/internal/provider/ipinfo"
-	"api-client/internal/provider/ipwhois"
 )
 
 // Checker defines the ability to check an IP address and return geolocation data.
@@ -16,7 +13,6 @@ type Checker interface {
 
 type CheckerFunc func(ctx context.Context, ip model.IPAddress) (model.Geolocation, error)
 
-// Check implements the Checker interface by calling the function itself.
 func (f CheckerFunc) Check(ctx context.Context, ip model.IPAddress) (model.Geolocation, error) {
 	return f(ctx, ip)
 }
@@ -45,6 +41,3 @@ func NewTestProvider(name string, checker Checker) Provider {
 }
 
 var _ Checker = CheckerFunc(nil)
-var _ Provider = &ipapi.Client{}
-var _ Provider = &ipinfo.Client{}
-var _ Provider = &ipwhois.Client{}

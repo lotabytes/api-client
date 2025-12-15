@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"api-client/internal/model"
+	"api-client/internal/provider"
 )
 
 const (
@@ -19,6 +20,8 @@ const (
 	// BaseURL is the API endpoint.
 	BaseURL = "https://ipinfo.io/"
 )
+
+var _ provider.Provider = &Client{}
 
 // response represents the JSON structure returned by ipinfo.io.
 type response struct {
@@ -33,26 +36,46 @@ type response struct {
 	Error *errorResponse `json:"error,omitempty"`
 }
 
+func (r response) toGEO(ip model.IPAddress) model.Geolocation {
+	geo := model.Geolocation{
+		IP:          ip,
+		CountryCode: r.Country,
+		Region:      r.Region,
+		City:        r.City,
+	}
+
+	// Parse location "lat,lon"
+	if r.Loc != "" {
+		lat, lon, err := parseLocation(r.Loc)
+		if err == nil {
+			geo.Latitude = lat
+			geo.Longitude = lon
+		}
+	}
+
+	if r.Org != "" {
+		asn, org := parseOrg(r.Org)
+		geo.ASN = asn
+		geo.Org = org
+		// ipinfo.io doesn't distinguish ISP from Org, so we use Org for both
+		geo.ISP = org
+	}
+
+	return geo
+}
+
 type errorResponse struct {
 	Title   string `json:"title"`
 	Message string `json:"message"`
 }
 
-// Client is an ipinfo.io geolocation provider.
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
+	requester provider.HttpRequester
+	baseURL   string
 }
 
 // Option configures a Client.
 type Option func(*Client)
-
-// WithHTTPClient sets a custom HTTP client.
-func WithHTTPClient(c *http.Client) Option {
-	return func(client *Client) {
-		client.httpClient = c
-	}
-}
 
 // WithBaseURL sets a custom base URL (useful for testing).
 func WithBaseURL(url string) Option {
@@ -61,11 +84,11 @@ func WithBaseURL(url string) Option {
 	}
 }
 
-// New creates a new ipinfo.io client.
-func New(opts ...Option) *Client {
+// New creates a new ip-api.com client.
+func New(requester provider.HttpRequester, opts ...Option) *Client {
 	c := &Client{
-		httpClient: http.DefaultClient,
-		baseURL:    BaseURL,
+		requester: requester,
+		baseURL:   BaseURL,
 	}
 
 	for _, opt := range opts {
@@ -92,7 +115,7 @@ func (c *Client) Check(ctx context.Context, ip model.IPAddress) (model.Geolocati
 	// ipinfo.io recommends setting Accept header
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.requester.Do(req)
 	if err != nil {
 		return model.Geolocation{}, fmt.Errorf("executing request: %w", err)
 	}
@@ -111,32 +134,7 @@ func (c *Client) Check(ctx context.Context, ip model.IPAddress) (model.Geolocati
 		return model.Geolocation{}, fmt.Errorf("API error: %s - %s", apiResp.Error.Title, apiResp.Error.Message)
 	}
 
-	geo := model.Geolocation{
-		IP:          ip,
-		CountryCode: apiResp.Country,
-		Region:      apiResp.Region,
-		City:        apiResp.City,
-	}
-
-	// Parse location "lat,lon"
-	if apiResp.Loc != "" {
-		lat, lon, err := parseLocation(apiResp.Loc)
-		if err == nil {
-			geo.Latitude = lat
-			geo.Longitude = lon
-		}
-	}
-
-	// Parse org "AS12345 Organization Name"
-	if apiResp.Org != "" {
-		asn, org := parseOrg(apiResp.Org)
-		geo.ASN = asn
-		geo.Org = org
-		// ipinfo.io doesn't distinguish ISP from Org, so we use Org for both
-		geo.ISP = org
-	}
-
-	return geo, nil
+	return apiResp.toGEO(ip), nil
 }
 
 // parseLocation parses "latitude,longitude" string.

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"api-client/internal/model"
+	"api-client/internal/provider"
 )
 
 const (
@@ -35,21 +36,28 @@ type response struct {
 	Query       string  `json:"query"`
 }
 
-// Client is an ip-api.com geolocation provider.
+func (r response) toGeoLocation(ip model.IPAddress) model.Geolocation {
+	return model.Geolocation{
+		IP:          ip,
+		Country:     r.Country,
+		CountryCode: r.CountryCode,
+		Region:      r.RegionName,
+		City:        r.City,
+		Latitude:    r.Lat,
+		Longitude:   r.Lon,
+		ISP:         r.ISP,
+		Org:         r.Org,
+		ASN:         r.AS,
+	}
+}
+
 type Client struct {
-	httpClient *http.Client
-	baseURL    string
+	requester provider.HttpRequester
+	baseURL   string
 }
 
 // Option configures a Client.
 type Option func(*Client)
-
-// WithHTTPClient sets a custom HTTP client.
-func WithHTTPClient(c *http.Client) Option {
-	return func(client *Client) {
-		client.httpClient = c
-	}
-}
 
 // WithBaseURL sets a custom base URL (useful for testing).
 func WithBaseURL(url string) Option {
@@ -59,10 +67,10 @@ func WithBaseURL(url string) Option {
 }
 
 // New creates a new ip-api.com client.
-func New(opts ...Option) *Client {
+func New(requester provider.HttpRequester, opts ...Option) *Client {
 	c := &Client{
-		httpClient: http.DefaultClient,
-		baseURL:    BaseURL,
+		requester: requester,
+		baseURL:   BaseURL,
 	}
 
 	for _, opt := range opts {
@@ -86,7 +94,7 @@ func (c *Client) Check(ctx context.Context, ip model.IPAddress) (model.Geolocati
 		return model.Geolocation{}, fmt.Errorf("creating request: %w", err)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.requester.Do(req)
 	if err != nil {
 		return model.Geolocation{}, fmt.Errorf("executing request: %w", err)
 	}
@@ -109,16 +117,5 @@ func (c *Client) Check(ctx context.Context, ip model.IPAddress) (model.Geolocati
 		return model.Geolocation{}, fmt.Errorf("API error: %s", msg)
 	}
 
-	return model.Geolocation{
-		IP:          ip,
-		Country:     apiResp.Country,
-		CountryCode: apiResp.CountryCode,
-		Region:      apiResp.RegionName,
-		City:        apiResp.City,
-		Latitude:    apiResp.Lat,
-		Longitude:   apiResp.Lon,
-		ISP:         apiResp.ISP,
-		Org:         apiResp.Org,
-		ASN:         apiResp.AS,
-	}, nil
+	return apiResp.toGeoLocation(ip), nil
 }

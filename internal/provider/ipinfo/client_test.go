@@ -34,7 +34,7 @@ func TestClient_Check_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("8.8.8.8")
 
 	geo, err := client.Check(context.Background(), ip)
@@ -84,7 +84,7 @@ func TestClient_Check_IPv6(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("2001:4860:4860::8888")
 
 	geo, err := client.Check(context.Background(), ip)
@@ -110,7 +110,7 @@ func TestClient_Check_APIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("127.0.0.1")
 
 	_, err := client.Check(context.Background(), ip)
@@ -130,7 +130,7 @@ func TestClient_Check_HTTPError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("8.8.8.8")
 
 	_, err := client.Check(context.Background(), ip)
@@ -147,7 +147,7 @@ func TestClient_Check_InvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("8.8.8.8")
 
 	_, err := client.Check(context.Background(), ip)
@@ -163,7 +163,7 @@ func TestClient_Check_ContextCancellation(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := New(WithBaseURL(server.URL + "/"))
+	client := New(http.DefaultClient, WithBaseURL(server.URL+"/"))
 	ip := model.MustParseAddr("8.8.8.8")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)

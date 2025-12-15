@@ -85,9 +85,9 @@ func run(args []string) int {
 
 	// Create providers
 	providers := []provider.Provider{
-		ipapi.New(ipapi.WithHTTPClient(httpClient)),
-		ipinfo.New(ipinfo.WithHTTPClient(httpClient)),
-		ipwhois.New(ipwhois.WithHTTPClient(httpClient)),
+		ipapi.New(httpClient),
+		ipinfo.New(httpClient),
+		ipwhois.New(httpClient),
 	}
 
 	// Create aggregator and perform lookup
