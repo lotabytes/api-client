@@ -107,7 +107,7 @@ func TestGeolocation_IsEmpty(t *testing.T) {
 		},
 		{
 			name: "only IP set",
-			geo:  Geolocation{IP: MustParseIPAddress("8.8.8.8")},
+			geo:  Geolocation{IP: MustParseAddr("8.8.8.8")},
 			want: true, // IP doesn't count
 		},
 		{
@@ -128,7 +128,7 @@ func TestGeolocation_IsEmpty(t *testing.T) {
 		{
 			name: "fully populated",
 			geo: Geolocation{
-				IP:          MustParseIPAddress("8.8.8.8"),
+				IP:          MustParseAddr("8.8.8.8"),
 				Country:     "United States",
 				CountryCode: "US",
 				Region:      "California",
@@ -154,7 +154,7 @@ func TestGeolocation_IsEmpty(t *testing.T) {
 
 func TestGeolocation_JSONMarshal(t *testing.T) {
 	geo := Geolocation{
-		IP:          MustParseIPAddress("8.8.8.8"),
+		IP:          MustParseAddr("8.8.8.8"),
 		Country:     "United States",
 		CountryCode: "US",
 		Region:      "California",
@@ -242,7 +242,7 @@ func TestGeolocation_JSONUnmarshal(t *testing.T) {
 
 func TestGeolocation_JSONRoundTrip(t *testing.T) {
 	original := Geolocation{
-		IP:          MustParseIPAddress("2001:4860:4860::8888"),
+		IP:          MustParseAddr("2001:4860:4860::8888"),
 		Country:     "United States",
 		CountryCode: "US",
 		Region:      "California",
@@ -265,7 +265,7 @@ func TestGeolocation_JSONRoundTrip(t *testing.T) {
 	}
 
 	// Compare all fields
-	if !original.IP.Equal(decoded.IP) {
+	if original.IP.Compare(decoded.IP) != 0 {
 		t.Errorf("IP mismatch: got %v, want %v", decoded.IP, original.IP)
 	}
 	if original.Country != decoded.Country {
@@ -300,7 +300,7 @@ func TestGeolocation_JSONRoundTrip(t *testing.T) {
 func TestGeolocation_JSONEmptyValues(t *testing.T) {
 	// Test that empty/zero values serialize correctly
 	geo := Geolocation{
-		IP:      MustParseIPAddress("8.8.8.8"),
+		IP:      MustParseAddr("8.8.8.8"),
 		Country: "United States",
 		// All other fields are zero values
 	}

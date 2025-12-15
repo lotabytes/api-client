@@ -67,7 +67,7 @@ func run(args []string) int {
 	}
 
 	// Parse and validate the IP address
-	ip, err := model.ParseIPAddress(cfg.IPAddress)
+	ip, err := model.ParseAddr(cfg.IPAddress)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		return 1

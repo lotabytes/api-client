@@ -4,7 +4,6 @@ package model
 // associated with an IP address. This is the normalised result type
 // that all checkers map their responses to.
 type Geolocation struct {
-	// IP is the queried address
 	IP IPAddress `json:"ip"`
 
 	// Geographic information
@@ -31,7 +30,6 @@ func (g Geolocation) HasNetworkInfo() bool {
 	return g.ISP != "" || g.Org != "" || g.ASN != ""
 }
 
-// IsEmpty reports whether all fields (except IP) are at their zero values.
 func (g Geolocation) IsEmpty() bool {
 	return g.Country == "" &&
 		g.CountryCode == "" &&

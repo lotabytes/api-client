@@ -35,7 +35,7 @@ func TestClient_Check_Success(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	geo, err := client.Check(context.Background(), ip)
 	if err != nil {
@@ -96,7 +96,7 @@ func TestClient_Check_IPv6(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("2001:4860:4860::8888")
+	ip := model.MustParseAddr("2001:4860:4860::8888")
 
 	geo, err := client.Check(context.Background(), ip)
 	if err != nil {
@@ -120,7 +120,7 @@ func TestClient_Check_APIError(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("127.0.0.1")
+	ip := model.MustParseAddr("127.0.0.1")
 
 	_, err := client.Check(context.Background(), ip)
 	if err == nil {
@@ -143,7 +143,7 @@ func TestClient_Check_APIErrorNoMessage(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("127.0.0.1")
+	ip := model.MustParseAddr("127.0.0.1")
 
 	_, err := client.Check(context.Background(), ip)
 	if err == nil {
@@ -162,7 +162,7 @@ func TestClient_Check_HTTPError(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	_, err := client.Check(context.Background(), ip)
 	if err == nil {
@@ -179,7 +179,7 @@ func TestClient_Check_InvalidJSON(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	_, err := client.Check(context.Background(), ip)
 	if err == nil {
@@ -195,7 +195,7 @@ func TestClient_Check_ContextCancellation(t *testing.T) {
 	defer server.Close()
 
 	client := New(WithBaseURL(server.URL + "/"))
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 	defer cancel()
@@ -208,7 +208,7 @@ func TestClient_Check_ContextCancellation(t *testing.T) {
 
 func TestClient_Check_ConnectionError(t *testing.T) {
 	client := New(WithBaseURL("http://localhost:1/"))
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	_, err := client.Check(context.Background(), ip)
 	if err == nil {

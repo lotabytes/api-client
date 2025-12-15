@@ -59,7 +59,7 @@ func TestProviderResult_JSONMarshal(t *testing.T) {
 	result := ProviderResult{
 		Provider: "ip-api",
 		Result: &Geolocation{
-			IP:      MustParseIPAddress("8.8.8.8"),
+			IP:      MustParseAddr("8.8.8.8"),
 			Country: "United States",
 		},
 		Duration: 150 * time.Millisecond,
@@ -87,7 +87,7 @@ func TestProviderResult_JSONMarshal(t *testing.T) {
 
 func TestReport_SuccessCount(t *testing.T) {
 	report := Report{
-		IP: MustParseIPAddress("8.8.8.8"),
+		IP: MustParseAddr("8.8.8.8"),
 		Results: []ProviderResult{
 			{Provider: "a", Result: &Geolocation{Country: "US"}},
 			{Provider: "b", Error: "timeout"},
@@ -102,7 +102,7 @@ func TestReport_SuccessCount(t *testing.T) {
 
 func TestReport_ErrorCount(t *testing.T) {
 	report := Report{
-		IP: MustParseIPAddress("8.8.8.8"),
+		IP: MustParseAddr("8.8.8.8"),
 		Results: []ProviderResult{
 			{Provider: "a", Result: &Geolocation{Country: "US"}},
 			{Provider: "b", Error: "timeout"},
@@ -117,7 +117,7 @@ func TestReport_ErrorCount(t *testing.T) {
 
 func TestReport_SuccessfulResults(t *testing.T) {
 	report := Report{
-		IP: MustParseIPAddress("8.8.8.8"),
+		IP: MustParseAddr("8.8.8.8"),
 		Results: []ProviderResult{
 			{Provider: "a", Result: &Geolocation{Country: "US"}},
 			{Provider: "b", Error: "timeout"},
@@ -139,7 +139,7 @@ func TestReport_SuccessfulResults(t *testing.T) {
 }
 
 func TestReport_Consensus_AllAgree(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP: ip,
 		Results: []ProviderResult{
@@ -185,7 +185,7 @@ func TestReport_Consensus_AllAgree(t *testing.T) {
 }
 
 func TestReport_Consensus_Voting(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP: ip,
 		Results: []ProviderResult{
@@ -209,7 +209,7 @@ func TestReport_Consensus_Voting(t *testing.T) {
 }
 
 func TestReport_Consensus_AverageCoordinates(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP: ip,
 		Results: []ProviderResult{
@@ -232,7 +232,7 @@ func TestReport_Consensus_AverageCoordinates(t *testing.T) {
 }
 
 func TestReport_Consensus_NoResults(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP:      ip,
 		Results: []ProviderResult{},
@@ -240,7 +240,7 @@ func TestReport_Consensus_NoResults(t *testing.T) {
 
 	consensus := report.Consensus()
 
-	if !consensus.IP.Equal(ip) {
+	if consensus.IP.Compare(ip) != 0 {
 		t.Errorf("IP = %v, want %v", consensus.IP, ip)
 	}
 	if consensus.Country != "" {
@@ -249,7 +249,7 @@ func TestReport_Consensus_NoResults(t *testing.T) {
 }
 
 func TestReport_Consensus_AllErrors(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP: ip,
 		Results: []ProviderResult{
@@ -260,7 +260,7 @@ func TestReport_Consensus_AllErrors(t *testing.T) {
 
 	consensus := report.Consensus()
 
-	if !consensus.IP.Equal(ip) {
+	if consensus.IP.Compare(ip) != 0 {
 		t.Errorf("IP = %v, want %v", consensus.IP, ip)
 	}
 	if consensus.Country != "" {
@@ -269,7 +269,7 @@ func TestReport_Consensus_AllErrors(t *testing.T) {
 }
 
 func TestReport_Consensus_IgnoresErrors(t *testing.T) {
-	ip := MustParseIPAddress("8.8.8.8")
+	ip := MustParseAddr("8.8.8.8")
 	report := Report{
 		IP: ip,
 		Results: []ProviderResult{
@@ -288,7 +288,7 @@ func TestReport_Consensus_IgnoresErrors(t *testing.T) {
 
 func TestReport_JSONMarshal(t *testing.T) {
 	report := Report{
-		IP:            MustParseIPAddress("8.8.8.8"),
+		IP:            MustParseAddr("8.8.8.8"),
 		Timestamp:     time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
 		TotalDuration: 250 * time.Millisecond,
 		Results: []ProviderResult{

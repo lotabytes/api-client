@@ -11,7 +11,7 @@ import (
 )
 
 func makeTestReport() model.Report {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 	return model.Report{
 		IP:        ip,
 		Timestamp: time.Date(2024, 1, 15, 10, 30, 0, 0, time.UTC),
@@ -54,7 +54,7 @@ func makeTestReport() model.Report {
 }
 
 func makeTestReportWithError() model.Report {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 	return model.Report{
 		IP:        ip,
 		Timestamp: time.Now(),
@@ -185,7 +185,7 @@ func TestFormatter_FormatText_WithError(t *testing.T) {
 }
 
 func TestFormatter_FormatText_EmptyReport(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 	report := model.Report{
 		IP:            ip,
 		Timestamp:     time.Now(),
@@ -231,7 +231,7 @@ func TestFormatter_Format_InvalidFormat(t *testing.T) {
 }
 
 func TestFormatter_FormatText_Coordinates(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 	report := model.Report{
 		IP:        ip,
 		Timestamp: time.Now(),

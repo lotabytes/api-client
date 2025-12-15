@@ -12,7 +12,7 @@ import (
 )
 
 func TestAggregator_Lookup_AllSuccess(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	p1 := provider.NewTestProvider("provider1", provider.CheckerFunc(func(ctx context.Context,
 		ip model.IPAddress) (model.Geolocation, error) {
@@ -26,7 +26,7 @@ func TestAggregator_Lookup_AllSuccess(t *testing.T) {
 	agg := New(p1, p2)
 	report := agg.Lookup(context.Background(), ip)
 
-	if !report.IP.Equal(ip) {
+	if report.IP.Compare(ip) != 0 {
 		t.Errorf("IP = %v, want %v", report.IP, ip)
 	}
 
@@ -52,7 +52,7 @@ func TestAggregator_Lookup_AllSuccess(t *testing.T) {
 }
 
 func TestAggregator_Lookup_PartialFailure(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	p1 := provider.NewTestProvider("success", provider.CheckerFunc(func(ctx context.Context,
 		ip model.IPAddress) (model.Geolocation, error) {
@@ -93,7 +93,7 @@ func TestAggregator_Lookup_PartialFailure(t *testing.T) {
 }
 
 func TestAggregator_Lookup_AllFailure(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	p1 := provider.NewTestProvider("fail1", provider.CheckerFunc(func(ctx context.Context, ip model.IPAddress) (model.Geolocation,
 		error) {
@@ -117,7 +117,7 @@ func TestAggregator_Lookup_AllFailure(t *testing.T) {
 }
 
 func TestAggregator_Lookup_Concurrent(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	// Track call times to verify concurrent execution
 	var callCount int32
@@ -171,7 +171,7 @@ func TestAggregator_Lookup_Concurrent(t *testing.T) {
 }
 
 func TestAggregator_Lookup_ContextCancellation(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 	p := provider.NewTestProvider("slow", provider.CheckerFunc(func(ctx context.Context,
 		ip model.IPAddress) (model.Geolocation, error) {
 		select {
@@ -204,12 +204,12 @@ func TestAggregator_Lookup_ContextCancellation(t *testing.T) {
 }
 
 func TestAggregator_Lookup_NoProviders(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	agg := New() // No providers
 	report := agg.Lookup(context.Background(), ip)
 
-	if !report.IP.Equal(ip) {
+	if report.IP.Compare(ip) != 0 {
 		t.Errorf("IP = %v, want %v", report.IP, ip)
 	}
 
@@ -223,7 +223,7 @@ func TestAggregator_Lookup_NoProviders(t *testing.T) {
 }
 
 func TestAggregator_Lookup_PreservesOrder(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	// Create providers with different delays to test order preservation
 	p1 := provider.NewTestProvider("first", provider.CheckerFunc(func(ctx context.Context,
@@ -258,7 +258,7 @@ func TestAggregator_Lookup_PreservesOrder(t *testing.T) {
 }
 
 func TestAggregator_Lookup_Duration(t *testing.T) {
-	ip := model.MustParseIPAddress("8.8.8.8")
+	ip := model.MustParseAddr("8.8.8.8")
 
 	p := provider.NewTestProvider("test", provider.CheckerFunc(func(ctx context.Context,
 		ip model.IPAddress) (model.Geolocation, error) {
