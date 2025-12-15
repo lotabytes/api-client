@@ -1,0 +1,3 @@
+- Clone repo
+- cd cmd/ipintel
+- go build/run .
