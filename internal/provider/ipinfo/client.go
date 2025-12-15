@@ -36,7 +36,7 @@ type response struct {
 	Error *errorResponse `json:"error,omitempty"`
 }
 
-func (r response) toGEO(ip model.IPAddress) model.Geolocation {
+func (r response) toGeoLocation(ip model.IPAddress) model.Geolocation {
 	geo := model.Geolocation{
 		IP:          ip,
 		CountryCode: r.Country,
@@ -134,7 +134,7 @@ func (c *Client) Check(ctx context.Context, ip model.IPAddress) (model.Geolocati
 		return model.Geolocation{}, fmt.Errorf("API error: %s - %s", apiResp.Error.Title, apiResp.Error.Message)
 	}
 
-	return apiResp.toGEO(ip), nil
+	return apiResp.toGeoLocation(ip), nil
 }
 
 // parseLocation parses "latitude,longitude" string.

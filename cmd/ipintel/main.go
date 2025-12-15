@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"api-client/internal/aggregator"
 	"api-client/internal/cli"
@@ -78,22 +77,17 @@ func run(args []string) int {
 		_, _ = fmt.Fprintf(os.Stderr, "Warning: %s is not a globally routable address. Results may be limited.\n\n", ip)
 	}
 
-	// Create HTTP client with timeout
-	httpClient := &http.Client{
-		Timeout: time.Duration(cfg.Timeout) * time.Second,
-	}
+	httpClient := &http.Client{Timeout: cfg.Timeout}
 
-	// Create providers
 	providers := []provider.Provider{
 		ipapi.New(httpClient),
 		ipinfo.New(httpClient),
 		ipwhois.New(httpClient),
 	}
 
-	// Create aggregator and perform lookup
 	agg := aggregator.New(providers...)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
 	defer cancel()
 
 	report := agg.Lookup(ctx, ip)

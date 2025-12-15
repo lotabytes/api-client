@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestParser_Parse_Defaults(t *testing.T) {
@@ -21,8 +22,8 @@ func TestParser_Parse_Defaults(t *testing.T) {
 		t.Errorf("Format = %v, want FormatText", cfg.Format)
 	}
 
-	if cfg.Timeout != 10 {
-		t.Errorf("Timeout = %d, want 10", cfg.Timeout)
+	if cfg.Timeout != DefaultTimeout {
+		t.Errorf("Timeout = %d, want %d", cfg.Timeout, DefaultTimeout)
 	}
 
 	if cfg.ShowHelp {
@@ -99,11 +100,11 @@ func TestParser_Parse_InvalidFormat(t *testing.T) {
 func TestParser_Parse_Timeout(t *testing.T) {
 	tests := []struct {
 		args        []string
-		wantTimeout int
+		wantTimeout time.Duration
 	}{
-		{[]string{"-t", "5", "8.8.8.8"}, 5},
-		{[]string{"--timeout", "30", "8.8.8.8"}, 30},
-		{[]string{"-timeout", "15", "8.8.8.8"}, 15},
+		{[]string{"-t", "5s", "8.8.8.8"}, MustParseDuration("5s")},
+		{[]string{"--timeout", "30s", "8.8.8.8"}, MustParseDuration("30s")},
+		{[]string{"-timeout", "15s", "8.8.8.8"}, MustParseDuration("15s")},
 	}
 
 	for _, tt := range tests {
@@ -170,7 +171,7 @@ func TestParser_Parse_Version(t *testing.T) {
 
 func TestParser_Parse_CombinedFlags(t *testing.T) {
 	p := NewParser()
-	cfg, err := p.Parse([]string{"-f", "json", "-t", "5", "1.1.1.1"})
+	cfg, err := p.Parse([]string{"-f", "json", "-t", "5s", "1.1.1.1"})
 	if err != nil {
 		t.Fatalf("Parse() error = %v", err)
 	}
@@ -183,7 +184,7 @@ func TestParser_Parse_CombinedFlags(t *testing.T) {
 		t.Errorf("Format = %v, want FormatJSON", cfg.Format)
 	}
 
-	if cfg.Timeout != 5 {
+	if cfg.Timeout != 5*time.Second {
 		t.Errorf("Timeout = %d, want 5", cfg.Timeout)
 	}
 }
@@ -246,7 +247,7 @@ func TestConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:    "valid config",
-			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 10},
+			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 10 * time.Second},
 			wantErr: false,
 		},
 		{
@@ -267,13 +268,13 @@ func TestConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "timeout too low",
-			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 0},
+			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 10 * time.Millisecond},
 			wantErr: true,
-			errMsg:  "timeout must be at least 1 second",
+			errMsg:  "timeout must be at least 100 millisecond",
 		},
 		{
 			name:    "timeout too high",
-			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 100},
+			cfg:     Config{IPAddress: "8.8.8.8", Timeout: 100 * time.Second},
 			wantErr: true,
 			errMsg:  "timeout must not exceed 60 seconds",
 		},
@@ -299,4 +300,13 @@ func TestConfig_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func MustParseDuration(duration string) time.Duration {
+	d, err := time.ParseDuration(duration)
+	if err != nil {
+		panic(err)
+	}
+
+	return d
 }

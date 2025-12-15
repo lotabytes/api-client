@@ -6,21 +6,25 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
+
+	"api-client/internal/provider"
 )
 
 // OutputFormat specifies how results should be displayed.
 type OutputFormat string
 
 const (
-	FormatText OutputFormat = "text"
-	FormatJSON OutputFormat = "json"
+	FormatText     OutputFormat = "text"
+	FormatJSON     OutputFormat = "json"
+	DefaultTimeout              = provider.DefaultRequestTimeout
 )
 
 // Config holds the parsed command-line configuration.
 type Config struct {
 	IPAddress   string
 	Format      OutputFormat
-	Timeout     int // seconds
+	Timeout     time.Duration
 	ShowHelp    bool
 	ShowVersion bool
 }
@@ -55,8 +59,8 @@ func (p *Parser) Parse(args []string) (Config, error) {
 
 	p.fs.StringVar(&format, "format", "text", "output format: text or json")
 	p.fs.StringVar(&format, "f", "text", "output format: text or json (shorthand)")
-	p.fs.IntVar(&cfg.Timeout, "timeout", 10, "timeout in seconds for API requests")
-	p.fs.IntVar(&cfg.Timeout, "t", 10, "timeout in seconds (shorthand)")
+	p.fs.DurationVar(&cfg.Timeout, "timeout", DefaultTimeout, "timeout API requests, specified as a duration, eg '1s'")
+	p.fs.DurationVar(&cfg.Timeout, "t", DefaultTimeout, "timeout as a duration (shorthand)")
 	p.fs.BoolVar(&cfg.ShowHelp, "help", false, "show help message")
 	p.fs.BoolVar(&cfg.ShowHelp, "h", false, "show help message (shorthand)")
 	p.fs.BoolVar(&cfg.ShowVersion, "version", false, "show version information")
@@ -105,17 +109,17 @@ ARGUMENTS:
     -               Read a single IP address from standard input (forces JSON output)
 
 OPTIONS:
-    -f, --format <FORMAT>    Output format: 'text' (default) or 'json'
-    -t, --timeout <SECONDS>  Timeout for API requests in seconds (default: 10)
-    -h, --help               Show this help message
-    -v, --version            Show version information
+    -f, --format <FORMAT>     Output format: 'text' (default) or 'json'
+    -t, --timeout <DURATION>  Timeout for API requests as a duration, e.g. '1s', '500ms' (default: 10 seconds)
+    -h, --help                Show this help message
+    -v, --version             Show version information
 
 EXAMPLES:
-    ipintel 8.8.8.8                    Look up Google's DNS server
-    ipintel 2001:4860:4860::8888       Look up IPv6 address
-    ipintel -f json 1.1.1.1            Output as JSON
-    ipintel --timeout 5 8.8.8.8        Set 5 second timeout
-    echo 8.8.8.8 | ipintel -           Read IP from stdin and output JSON
+    ipintel 8.8.8.8                 Look up Google's DNS server
+    ipintel 2001:4860:4860::8888    Look up IPv6 address
+    ipintel -f json 1.1.1.1         Output as JSON
+    ipintel --timeout 5s 8.8.8.8    Set 5 second timeout
+    echo 8.8.8.8 | ipintel -        Read IP from stdin and output JSON
 
 PROVIDERS:
     Results are aggregated from the following free geolocation APIs:
@@ -150,11 +154,11 @@ func (cfg Config) Validate() error {
 		return fmt.Errorf("IP address is required")
 	}
 
-	if cfg.Timeout < 1 {
-		return fmt.Errorf("timeout must be at least 1 second")
+	if cfg.Timeout < 100*time.Millisecond {
+		return fmt.Errorf("timeout must be at least 100 milliseconds")
 	}
 
-	if cfg.Timeout > 60 {
+	if cfg.Timeout > 60*time.Second {
 		return fmt.Errorf("timeout must not exceed 60 seconds")
 	}
 

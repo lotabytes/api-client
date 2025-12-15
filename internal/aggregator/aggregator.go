@@ -23,8 +23,6 @@ func New(providers ...provider.Provider) *Aggregator {
 }
 
 // Lookup queries all providers concurrently and returns an aggregated report.
-// The context controls the overall timeout for all lookups.
-// Individual provider failures do not cause the entire lookup to fail.
 func (a *Aggregator) Lookup(ctx context.Context, ip model.IPAddress) model.Report {
 	start := time.Now()
 
